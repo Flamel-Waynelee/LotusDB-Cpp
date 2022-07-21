@@ -11,4 +11,5 @@ include_directories(
 
 add_executable(LotusDB 
     main.cc 
+    ./log/log_entry.cc
 )

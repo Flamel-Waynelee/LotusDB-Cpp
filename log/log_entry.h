@@ -8,6 +8,8 @@
 #define LOG_ENTRY_H
 
 #include "pch.h"
+#include <bits/stdint-uintn.h>
+#include <cstdio>
 
 /**
  * @brief 
@@ -20,9 +22,17 @@
  * |---4---|---1----|----5-----|-----5------|-----10-----|
  * |-------------------------25--------------------------|
  */
+enum Size {
+    CRC_SIZE = 4,
+    TYPE_SIZE = 1,
+    KEY_SIZE_SIZE = 5,
+    VALUE_SIZE_SIZE = 5,
+    EXPIRATION_SIZE = 10
+};
+constexpr uint8_t HEADER_SIZE = 25;
 
 struct Header {
-    int get_bytes(uint8_t* buffer, int max_len);
+    bool get_bytes(uint8_t* buffer, int max_len) const;
 
     uint32_t crc;
     uint8_t type;
@@ -31,30 +41,25 @@ struct Header {
     int64_t expiration;
 };
 
-struct KeyValue {
-    int get_bytes(uint8_t* buffer, int max_len);
-
-    uint8_t* key;
-    uint8_t* value;
-};
-
 class LogEntry {
-    enum Size {
-        CRC = 4,
-        TYPE = 1,
-        KEY_SIZE = 5,
-        VALUE_SIZE = 5,
-        EXPIRATION = 10,
-        HEADER = 25
-    };
-
+public:
+    LogEntry(const char key[], const char value[]);
     LogEntry(uint8_t* bytes, int len);
 
-    int get_bytes(uint8_t* buffer, int max_len);
+    LogEntry(const LogEntry& log_entry);
+    LogEntry& operator=(const LogEntry& log_entry);
+    ~LogEntry();
+
+    bool get_bytes(uint8_t* buffer, int max_len) const;
+
+    void debug_show() const {
+        STDERR("%04x %02x %04x %04x %08lx", header_.crc, header_.type, header_.key_size, header_.value_size, header_.expiration);
+    }
 
 private:
     Header header_;
-    KeyValue key_value_;
+    char* key_;
+    char* value_;
 };
 
 #endif
