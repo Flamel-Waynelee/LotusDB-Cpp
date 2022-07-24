@@ -31,26 +31,35 @@ enum Size {
 };
 constexpr uint8_t HEADER_SIZE = 25;
 
+#pragma pack(1)
 struct Header {
-    bool get_bytes(uint8_t* buffer, int max_len) const;
+public:
+    Header() : crc(0), type(0), key_size(0), value_size(0), expiration(0),
+        zero_padding_1(0), zero_padding_2(0), zero_padding_3(0) { }
 
     uint32_t crc;
     uint8_t type;
     uint32_t key_size;
+private:
+    uint8_t zero_padding_1; // 零填充1: 使5字节对齐，不应被外界访问
+public:
     uint32_t value_size;
+private:
+    uint8_t zero_padding_2; // 零填充1: 使5字节对齐，不应被外界访问
+public:
     int64_t expiration;
+private:
+    uint16_t zero_padding_3; // 零填充1: 使5字节对齐，不应被外界访问
 };
+#pragma pack()
 
 class LogEntry {
 public:
     LogEntry(const char key[], const char value[]);
-    LogEntry(uint8_t* bytes, int len);
-
-    LogEntry(const LogEntry& log_entry);
-    LogEntry& operator=(const LogEntry& log_entry);
+    LogEntry(uint8_t* bytes, uint32_t len);
     ~LogEntry();
 
-    bool get_bytes(uint8_t* buffer, int max_len) const;
+    bool get_bytes(uint8_t* buffer, uint32_t max_len) const;
 
     void debug_show() const {
         STDERR("%04x %02x %04x %04x %08lx", header_.crc, header_.type, header_.key_size, header_.value_size, header_.expiration);

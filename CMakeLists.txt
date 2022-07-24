@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 include_directories(
     ./log
     ./pch
+    ./lock
 )
 
 add_executable(LotusDB 

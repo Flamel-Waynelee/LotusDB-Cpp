@@ -24,28 +24,11 @@ using namespace std;
  * |-------------------------25--------------------------|
  */
 
-bool Header::get_bytes(uint8_t *buffer, int max_len) const {
+
+bool LogEntry::get_bytes(uint8_t *buffer, uint32_t max_len) const {
     if (max_len < HEADER_SIZE)
         return false;
-
-    bzero(buffer, HEADER_SIZE);
-    uint8_t index = 0;
-    *((uint32_t*)(&buffer[index])) = crc;
-    index += CRC_SIZE;
-    *((uint32_t*)(&buffer[index])) = type;
-    index += TYPE_SIZE;
-    *((uint32_t*)(&buffer[index])) = key_size;
-    index += KEY_SIZE_SIZE;
-    *((uint32_t*)(&buffer[index])) = value_size;
-    index += VALUE_SIZE_SIZE;
-    *((uint32_t*)(&buffer[index])) = expiration;
-
-    return true;
-}
-
-bool LogEntry::get_bytes(uint8_t *buffer, int max_len) const {
-    if (!header_.get_bytes(buffer, max_len))
-        return false;
+    memcpy(buffer, &header_, HEADER_SIZE);
     if (max_len - HEADER_SIZE < header_.key_size + header_.value_size)
         return false;
     memcpy(buffer + HEADER_SIZE, key_, header_.key_size);
@@ -53,24 +36,15 @@ bool LogEntry::get_bytes(uint8_t *buffer, int max_len) const {
     return true;
 }
 
-LogEntry::LogEntry(uint8_t* bytes, int len) {
+LogEntry::LogEntry(uint8_t* bytes, uint32_t len) {
     if (len < HEADER_SIZE) {
         STDERR_FUNC_LINE();
         exit(EXIT_FAILURE);
     }
 
     uint8_t index = 0;
-
-    header_.crc = *((uint32_t*)(&bytes[index]));
-    index += CRC_SIZE;
-    header_.type = *((uint8_t*)(&bytes[index]));
-    index += TYPE_SIZE;
-    header_.key_size = *((uint32_t*)(&bytes[index]));
-    index += KEY_SIZE_SIZE;
-    header_.value_size = *((uint32_t*)(&bytes[index]));
-    index += VALUE_SIZE_SIZE;
-    header_.expiration = *((int64_t*)(&bytes[index]));
-    index += EXPIRATION_SIZE;
+    header_ = *((Header*)bytes);
+    index += HEADER_SIZE;
 
     if (len < HEADER_SIZE + header_.key_size + header_.value_size) 
         return;
@@ -93,22 +67,6 @@ LogEntry::LogEntry(const char key[], const char value[]) {
 
     key_ = strdup(key);
     value_ = strdup(value);
-}
-
-LogEntry::LogEntry(const LogEntry& log_entry) : header_(log_entry.header_) {
-    key_ = strdup(log_entry.key_);
-    value_ = strdup(log_entry.value_);
-}
-
-LogEntry& LogEntry::operator=(const LogEntry &log_entry) {
-    if (this == &log_entry)
-        return *this;
-    header_ = log_entry.header_;
-    free(key_);
-    free(value_);
-    key_ = strdup(log_entry.key_);
-    value_ = strdup(log_entry.value_);
-    return *this;
 }
 
 LogEntry::~LogEntry() {
