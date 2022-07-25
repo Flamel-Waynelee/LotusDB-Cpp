@@ -4,7 +4,7 @@
  * @brief main函数
  * @date 2022-07-22
  */
-#include "log_entry.h"
+#include "wal_entry.h"
 #include "pch.h"
 #include <bits/stdint-uintn.h>
 
@@ -13,18 +13,18 @@
 #include <strings.h>
 
 int main() {
-    LogEntry log_entry("123", "1234");
+    WalEntry wal_entry("123", "1234");
 
     uint8_t buffer[40];
     bzero(buffer, 40);
-    log_entry.get_bytes(buffer, 40);
-    log_entry.debug_show();
+    wal_entry.get_bytes(buffer, 40);
+    wal_entry.debug_show();
     for (uint8_t i = 0; i < 40; i++) 
         STDERR("%02x ", buffer[i]);
 
-    LogEntry log_entry_1(buffer, 40);
-    log_entry_1.get_bytes(buffer, 40);
-    log_entry_1.debug_show();
+    WalEntry wal_entry_1(buffer, 40);
+    wal_entry_1.get_bytes(buffer, 40);
+    wal_entry_1.debug_show();
     for (uint8_t i = 0; i < 40; i++) 
         STDERR("%02x ", buffer[i]);
 

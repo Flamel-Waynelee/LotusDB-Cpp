@@ -1,10 +1,10 @@
 /**
- * @file log_entry.cc
+ * @file wal_entry.cc
  * @author Flamel-NW (flamel.nw@qq.com)
- * @brief LogEntry类的实现
+ * @brief WalEntry类的实现
  * @date 2022-07-21
  */
-#include "log_entry.h"
+#include "wal_entry.h"
 #include <bits/stdint-uintn.h>
 #include <cstdlib>
 #include <cstring>
@@ -14,7 +14,7 @@ using namespace std;
 
 /**
  * @brief 
- * The LogEntry looks like:
+ * The WalEntry looks like:
  * +-------+--------+----------+------------+------------+-------+---------+
  * |  crc  |  type  | key_size | value_size | expiration |  key  |  value  |
  * +-------+--------+----------+------------+-------------+-------+---------+
@@ -25,7 +25,7 @@ using namespace std;
  */
 
 
-bool LogEntry::get_bytes(uint8_t *buffer, uint32_t max_len) const {
+bool WalEntry::get_bytes(uint8_t *buffer, uint32_t max_len) const {
     if (max_len < HEADER_SIZE)
         return false;
     memcpy(buffer, &header_, HEADER_SIZE);
@@ -36,7 +36,7 @@ bool LogEntry::get_bytes(uint8_t *buffer, uint32_t max_len) const {
     return true;
 }
 
-LogEntry::LogEntry(uint8_t* bytes, uint32_t len) {
+WalEntry::WalEntry(uint8_t* bytes, uint32_t len) {
     if (len < HEADER_SIZE) {
         STDERR_FUNC_LINE();
         exit(EXIT_FAILURE);
@@ -57,7 +57,7 @@ LogEntry::LogEntry(uint8_t* bytes, uint32_t len) {
 }
 
 
-LogEntry::LogEntry(const char key[], const char value[]) {
+WalEntry::WalEntry(const char key[], const char value[]) {
     // TODO: 初始化header
     header_.crc = 0;
     header_.type = 0;
@@ -69,7 +69,7 @@ LogEntry::LogEntry(const char key[], const char value[]) {
     value_ = strdup(value);
 }
 
-LogEntry::~LogEntry() {
+WalEntry::~WalEntry() {
     free(key_);
     free(value_);
 }

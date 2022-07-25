@@ -5,12 +5,12 @@ project (LOTUS_DB)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 include_directories(
-    ./log
+    ./wal
     ./pch
     ./lock
 )
 
 add_executable(LotusDB 
     main.cc 
-    ./log/log_entry.cc
+    ./wal/wal_entry.cc
 )

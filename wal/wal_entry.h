@@ -1,11 +1,11 @@
 /**
- * @file log_entry.h
+ * @file wal_entry.h
  * @author Flamel-NW (flamel.nw@qq.com)
- * @brief LogEntry类
+ * @brief WalEntry类
  * @date 2022-07-21
  */
-#ifndef LOG_ENTRY_H
-#define LOG_ENTRY_H
+#ifndef WAL_ENTRY_H
+#define WAL_ENTRY_H
 
 #include "pch.h"
 #include <bits/stdint-uintn.h>
@@ -13,7 +13,7 @@
 
 /**
  * @brief 
- * The LogEntry looks like:
+ * The WalEntry looks like:
  * +-------+--------+----------+------------+------------+-------+---------+
  * |  crc  |  type  | key_size | value_size | expiration |  key  |  value  |
  * +-------+--------+----------+------------+-------------+-------+---------+
@@ -53,11 +53,11 @@ private:
 };
 #pragma pack()
 
-class LogEntry {
+class WalEntry {
 public:
-    LogEntry(const char key[], const char value[]);
-    LogEntry(uint8_t* bytes, uint32_t len);
-    ~LogEntry();
+    WalEntry(const char key[], const char value[]);
+    WalEntry(uint8_t* bytes, uint32_t len);
+    ~WalEntry();
 
     bool get_bytes(uint8_t* buffer, uint32_t max_len) const;
 
