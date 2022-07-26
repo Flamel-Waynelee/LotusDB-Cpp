@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <cstdlib>
 #include <map>
 #include <pthread.h>

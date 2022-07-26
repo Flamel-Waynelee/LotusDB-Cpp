@@ -6,70 +6,96 @@
  */
 #include "wal_entry.h"
 #include <bits/stdint-uintn.h>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <strings.h>
 
 using namespace std;
 
+
 /**
  * @brief 
  * The WalEntry looks like:
- * +-------+--------+----------+------------+------------+-------+---------+
- * |  crc  |  type  | key_size | value_size | expiration |  key  |  value  |
- * +-------+--------+----------+------------+-------------+-------+---------+
- * |------------------------HEADER-----------------------|
- *         |--------------------------crc check---------------------------|
- * |---4---|---1----|----5-----|-----5------|-----10-----|
- * |-------------------------25--------------------------|
+ * +-------+-----------+----------+------------+-------+---------+
+ * |  crc  | timestamp | key_size | value_size |  key  |  value  |
+ * +-------+-----------+----------+------------+-------+---------+
+ * |------------------HEADER-------------------|
+ *         |----------------------crc check----------------------|
+ * |---4---|-----4-----|----4-----|-----4------|
+ * |--------------------16---------------------|
  */
 
-
 bool WalEntry::get_bytes(uint8_t *buffer, uint32_t max_len) const {
-    if (max_len < HEADER_SIZE)
+    if (max_len < WAL_HEADER_SIZE)
         return false;
-    memcpy(buffer, &header_, HEADER_SIZE);
-    if (max_len - HEADER_SIZE < header_.key_size + header_.value_size)
+    memcpy(buffer, &wal_header_, WAL_HEADER_SIZE);
+    if (max_len - WAL_HEADER_SIZE < wal_header_.key_size + wal_header_.value_size)
         return false;
-    memcpy(buffer + HEADER_SIZE, key_, header_.key_size);
-    memcpy(buffer + HEADER_SIZE + header_.key_size, value_, header_.value_size);
+    memcpy(buffer + WAL_HEADER_SIZE, key_, wal_header_.key_size);
+    memcpy(buffer + WAL_HEADER_SIZE + wal_header_.key_size, value_, wal_header_.value_size);
     return true;
 }
 
-WalEntry::WalEntry(uint8_t* bytes, uint32_t len) {
-    if (len < HEADER_SIZE) {
-        STDERR_FUNC_LINE();
-        exit(EXIT_FAILURE);
-    }
-
-    uint8_t index = 0;
-    header_ = *((Header*)bytes);
-    index += HEADER_SIZE;
-
-    if (len < HEADER_SIZE + header_.key_size + header_.value_size) 
+WalEntry::WalEntry(FILE* fp) {
+    key_ = value_ = NULL;
+    if (fp == NULL || feof(fp))
         return;
     
-    key_ = (char*)malloc(header_.key_size);
-    value_ = (char*)malloc(header_.value_size);
-    memcpy(key_, &bytes[index], header_.key_size);
-    index += header_.key_size;
-    memcpy(value_, &bytes[index], header_.value_size);
+    fread(&wal_header_, sizeof(WalHeader), 1, fp);
+    fread(key_, sizeof(char), wal_header_.key_size, fp);
+    fread(value_, sizeof(char), wal_header_.value_size, fp);
 }
 
-
 WalEntry::WalEntry(const char key[], const char value[]) {
-    // TODO: 初始化header
-    header_.crc = 0;
-    header_.type = 0;
-    header_.key_size = strlen(key);
-    header_.value_size = strlen(value);
-    header_.expiration = 0;
+    // TODO: crc
+    wal_header_.crc = 0;
+    wal_header_.timestamp = time(NULL);
+    wal_header_.key_size = strlen(key);
+    wal_header_.value_size = strlen(value);
 
     key_ = strdup(key);
     value_ = strdup(value);
 }
 
-WalEntry::~WalEntry() {
+WalEntry::WalEntry(const WalEntry& wal_entry) : wal_header_(wal_entry.wal_header_) {
+    key_ = strdup(wal_entry.key_);
+    value_ = strdup(wal_entry.value_);
+}
+
+WalEntry& WalEntry::operator=(const WalEntry &wal_entry) {
+    if (this == &wal_entry)
+        return *this;
     free(key_);
     free(value_);
+    wal_header_ = wal_entry.wal_header_;
+    key_ = strdup(wal_entry.key_);
+    value_ = strdup(wal_entry.value_);
+    return *this;
+}
+
+WalEntry::WalEntry(WalEntry&& wal_entry) : wal_header_(wal_entry.wal_header_) {
+    key_ = wal_entry.key_;
+    value_ = wal_entry.value_;
+    wal_entry.key_ = wal_entry.value_ = NULL;
+}
+
+WalEntry& WalEntry::operator=(WalEntry&& wal_entry) {
+    if (this == &wal_entry)
+        return *this;
+    free(key_);
+    free(value_);
+    wal_header_ = wal_entry.wal_header_;
+    key_ = wal_entry.key_;
+    value_ = wal_entry.value_;
+    wal_entry.key_ = wal_entry.value_ = NULL;
+    return *this;
+}
+
+WalEntry::~WalEntry() {
+    if (key_ != NULL)
+        free(key_);
+    if (value_ != NULL)
+        free(value_);
 }

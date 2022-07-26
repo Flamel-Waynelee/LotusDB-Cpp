@@ -99,6 +99,7 @@ private:
 };
 
 class RwLock {
+public:
     RwLock() {
         if (pthread_rwlock_init(&rwlock_, NULL) != 0) {
             STDERR_FUNC_LINE();
