@@ -12,31 +12,38 @@
 #include "wal_entry.h"
 #include "config.h"
 #include <bits/stdint-uintn.h>
+#include <bits/types/time_t.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <strings.h>
 
 class WalFile {
 public:
     WalFile() {
-        strcpy(filename_, root_dir);
-        strcat(filename_, "wal");
-        fp_ = fopen(filename_, "ab+");
+        filename_ = ROOT_DIR + "wal";
+        fp_ = fopen(filename_.c_str(), "rb+");
+        if (fp_ == NULL)
+            fp_ = fopen(filename_.c_str(), "wb");
+        else
+            fseek(fp_, 0, SEEK_END);
     }
 
     ~WalFile() {
         fclose(fp_);
-        remove(filename_);
+        remove(filename_.c_str());
     }
 
-    uint32_t write(const char key[], const char value[]) {
+    void reopen() {
+        fclose(fp_);
+        fp_ = fopen(filename_.c_str(), "wb");
+    }
+
+    MemEntry write(const std::string& key, const std::string& value) {
         WalEntry wal_entry(key, value);
-        uint32_t len = WAL_HEADER_SIZE + strlen(key) + strlen(value);
-        uint8_t* buffer = (uint8_t*)malloc(len);
-        wal_entry.get_bytes(buffer, len);
-        fwrite(buffer, sizeof(uint8_t), len, fp_);
-        return len;
+        wal_entry.write(fp_);
+        return wal_entry.get_entry();
     }
 
     void rewind() {
@@ -52,7 +59,7 @@ public:
     }
 
 private:
-    char filename_[MAX_FILENAME_LEN];
+    std::string filename_;
     FILE* fp_;
 };
 

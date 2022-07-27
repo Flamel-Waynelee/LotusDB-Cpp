@@ -9,6 +9,7 @@
 
 #include "pch.h"
 #include <bits/stdint-uintn.h>
+#include <bits/types/FILE.h>
 #include <bits/types/time_t.h>
 #include <cstdio>
 #include <string>
@@ -29,8 +30,6 @@
 constexpr uint8_t ITEM_SIZE = 4;
 constexpr uint8_t WAL_HEADER_SIZE = 16;
 
-using MemEntry = std::pair<std::string, std::pair<std::string, time_t>>;
-
 struct WalHeader {
 public:
     WalHeader() : crc(0), timestamp(0), key_size(0), value_size(0) { }
@@ -43,33 +42,25 @@ public:
 
 class WalEntry {
 public:
-    WalEntry() : key_(NULL), value_(NULL) { }
-    WalEntry(const char key[], const char value[]);
+    WalEntry(const std::string& key, const std::string& value);
     WalEntry(FILE* fp);
 
-    WalEntry(const WalEntry& wal_entry);
-    WalEntry& operator=(const WalEntry& wal_entry);
-
-    WalEntry(WalEntry&& wal_entry);
-    WalEntry& operator=(WalEntry&& wal_entry);
-
-    ~WalEntry();
+    void write(FILE* fp) const;
 
     bool empty() const {
-        return key_ == NULL && value_ == NULL;
+        return key_.empty() && value_.empty();
     }
 
-    MemEntry get_entry() const {
+    std::pair<std::string, std::pair<std::string, time_t>> get_entry() const {
         return std::pair<std::string, std::pair<std::string, time_t>>(key_, 
             std::pair<std::string, time_t>(value_, wal_header_.timestamp));
     }
 
-    bool get_bytes(uint8_t* buffer, uint32_t max_len) const;
 
 private:
     WalHeader wal_header_;
-    char* key_;
-    char* value_;
+    std::string key_;
+    std::string value_;
 };
 
 #endif

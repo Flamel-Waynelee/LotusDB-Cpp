@@ -2,7 +2,6 @@
 #define LOCK_H
 
 #include "pch.h"
-#include <pthread.h>
 
 class Sem {
 public:

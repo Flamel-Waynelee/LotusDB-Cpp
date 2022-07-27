@@ -9,10 +9,11 @@ include_directories(
     ./pch
     ./lock
     ./config
-    ./memtable
 )
 
 add_executable(LotusDB 
     main.cc 
     ./wal/wal_entry.cc
 )
+
+target_link_libraries(LotusDB pthread)
