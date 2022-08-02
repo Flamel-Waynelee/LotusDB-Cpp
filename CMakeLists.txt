@@ -9,6 +9,7 @@ include_directories(
     ./pch
     ./lock
     ./config
+    ./memtable
 )
 
 add_executable(LotusDB 

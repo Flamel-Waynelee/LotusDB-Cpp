@@ -27,9 +27,6 @@
  * |--------------------16---------------------|
  */
 
-constexpr uint8_t ITEM_SIZE = 4;
-constexpr uint8_t WAL_HEADER_SIZE = 16;
-
 struct WalHeader {
 public:
     WalHeader() : crc(0), timestamp(0), key_size(0), value_size(0) { }
