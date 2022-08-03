@@ -10,6 +10,8 @@ include_directories(
     ./lock
     ./config
     ./memtable
+    ./vl
+    ./bp-tree
 )
 
 add_executable(LotusDB 

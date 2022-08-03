@@ -10,36 +10,37 @@
 #include <cstdio>
 #include <string>
 
-class MemTable {
-    MemTable(const std::string& filename) : filename_(filename) {
-        wal_fp_ = fopen(filename.c_str(), "rb+");
-        if (wal_fp_ == NULL)
-            wal_fp_ = fopen(filename_.c_str(), "wb");
+class Memtable {
+    Memtable(uint32_t file_id) : file_id_(file_id) {
+        filename_ = ROOT_DIR + "vl" + std::string(std::to_string(file_id)) + ".vl";
+        fp_ = fopen(filename_.c_str(), "rb+");
+        if (fp_ == NULL)
+            fp_ = fopen(filename_.c_str(), "wb");
         else 
             reload();
     }
 
-    ~MemTable() {
-        fclose(wal_fp_); 
+    ~Memtable() {
+        fclose(fp_); 
     }
 
     void write(const std::string& key, const std::string& value) {
         rwlock_.wrlock();
         WalEntry wal_entry(key, value);
-        wal_entry.write(wal_fp_);
+        wal_entry.write(fp_);
         rwlock_.unlock();
     }
 
     WalEntry read() {
         rwlock_.rdlock();
-        WalEntry wal_entry(wal_fp_);
+        WalEntry wal_entry(fp_);
         rwlock_.unlock();
         return wal_entry;
     }
 
     uint32_t size() {
         rwlock_.rdlock();
-        uint32_t ret = ftell(wal_fp_);
+        uint32_t ret = ftell(fp_);
         rwlock_.unlock();
         return ret;
     }
@@ -57,8 +58,9 @@ private:
 
     RwLock rwlock_;
     std::map<std::string, std::pair<std::string, time_t>> index_;
+    uint32_t file_id_;
     std::string filename_;
-    FILE* wal_fp_;
+    FILE* fp_;
 };
 
 #endif

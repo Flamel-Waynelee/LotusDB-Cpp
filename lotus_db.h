@@ -15,8 +15,8 @@ public:
 
 
 private:
-    // MemTable active_memtable_;
-    // std::queue<MemTable> immutable_memtables_;   
+    // Memtable active_memtable_;
+    // std::queue<Memtable> immutable_memtables_;   
 };
 
 #endif

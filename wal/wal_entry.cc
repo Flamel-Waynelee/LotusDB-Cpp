@@ -38,12 +38,9 @@ void WalEntry::write(FILE* fp) const {
 }
 
 WalEntry::WalEntry(FILE* fp) {
-    if (fp == NULL || feof(fp))
+    if (fread(&wal_header_, sizeof(wal_header_), 1, fp) < 1)
         return;
-    fread(&wal_header_, sizeof(wal_header_), 1, fp);
 
-    if (feof(fp))
-        return;
     char buffer[PAGE_SIZE];
 
     bzero(buffer, sizeof(buffer));
